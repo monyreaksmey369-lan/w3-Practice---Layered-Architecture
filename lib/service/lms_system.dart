@@ -1,5 +1,6 @@
-import '../model/enrollment.dart';
 
+import '../model/enrollment.dart';
+import '../model/result.dart';
 import '../model/student.dart';
 import '../model/course.dart';
 
@@ -7,6 +8,7 @@ class LmsSystem {
   final List<Student> students = [];
   final List<Course> courses = [];
   final List<Enrollment> enroll = [];
+  final List<Result> result = [];
 
   // Task1 add and remove course
   // add course
@@ -67,8 +69,50 @@ class LmsSystem {
     }
     enroll.removeWhere(
         (e) => e.studentId.id == studentId && e.courseId.id == courseId);
-    
   }
+
+  // Task 4 Add a result to a course
+  void addResult(
+      {required String studentId,
+      required String courseId,
+      required double score}) {
+    Student? student = _findStudentOrNull(studentId);
+    if (student == null) {
+      throw Exception('Student $studentId not found');
+    }
+    Course? course = _findCourseOrNull(courseId);
+    if (course == null) {
+      throw Exception('Course $courseId not found');
+    }
+    // student be enrolled in the course ot not
+    final enrolled =
+        enroll.any((e) => e.courseId.id == courseId && e.studentId.id == studentId);
+    if (!enrolled) {
+      throw Exception('Student $studentId is not enrolled in course $courseId');
+    }
+    // check value is valid score range
+    if (score < 0 || score > 100) {
+      throw Expando('Score must between 0 and 100');
+    }
+    final index = result.indexWhere(
+        (r) => r.courseId.id == courseId && r.studentId == studentId);
+    if (index == -1) {
+      result.add(Result(studentId: student, courseId: course, score: score));
+    } else {
+      result[index].score = score;
+    }
+  }
+
+  // Task 5 Remove a student result
+  void removeResult({required String studentId , required String courseId}) {
+    final index = result.indexWhere(
+        (r) => r.courseId.id == courseId && r.studentId.id == studentId);
+    if (index == -1) {
+      throw Exception(
+          'Result for student $studentId in course $courseId not found');
+    }
+    result.removeAt(index);
+  } 
 
   void addStudent({required String studentId, required String studentName}) {
     // ! Student shall not exist already
